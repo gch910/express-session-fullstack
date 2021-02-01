@@ -1,9 +1,23 @@
 'use strict';
 
+const bcrypt = require('bcryptjs');
+
 module.exports = {
-  up: (queryInterface, Sequelize) => {
+  up: async (queryInterface, Sequelize) => {
+    const users = await queryInterface.bulkInsert('Users', [
+      {
+        emailAddress: 'john@smith.com',
+        firstName: 'John',
+        lastName: 'Smith',
+        hashedPassword: bcrypt.hashSync('P@ssw0rd', 10),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ], { returning: true });
+
     return queryInterface.bulkInsert('Books', [
       {
+        userId: users[0].id,
         title: 'The Martian',
         author: 'Andy Weir',
         releaseDate: new Date('2014-02-11'),
@@ -13,6 +27,7 @@ module.exports = {
         updatedAt: new Date()
       },
       {
+        userId: users[0].id,
         title: 'Ready Player One',
         author: 'Ernest Cline',
         releaseDate: new Date('2011-08-16'),
@@ -22,6 +37,7 @@ module.exports = {
         updatedAt: new Date()
       },
       {
+        userId: users[0].id,
         title: 'Harry Potter and the Sorcerer\'s Stone',
         author: 'J.K. Rowling',
         releaseDate: new Date('1998-10-01'),
@@ -32,8 +48,8 @@ module.exports = {
       },
     ], {});
   },
-
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Books', null, {});
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.bulkDelete('Books', null, {});
+    return queryInterface.bulkDelete('Users', null, {});
   }
 };
